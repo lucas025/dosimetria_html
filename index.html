@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Dosimetria de Pena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        .pena-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .pena-display h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .pena-valor {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .pena-dias {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .comandos {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cmd-btn {
+            padding: 8px 15px;
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .cmd-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .historico {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .historico.show {
+            display: block;
+        }
+
+        .historico h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .historico-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .historico-item .entrada {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .historico-item .ajuste {
+            color: #28a745;
+        }
+
+        .historico-item .ajuste.negativo {
+            color: #dc3545;
+        }
+
+        .ajuda {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .ajuda.show {
+            display: block;
+        }
+
+        .ajuda h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .ajuda ul {
+            list-style: none;
+            line-height: 1.8;
+        }
+
+        .ajuda code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .mensagem {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .mensagem.show {
+            display: block;
+        }
+
+        .mensagem.erro {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .mensagem.sucesso {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚖️ Calculadora de Dosimetria de Pena</h1>
+        
+        <div class="info-box">
+            <strong>Como usar:</strong><br>
+            Digite valores como <code>+2A 5M 10D</code> (adicionar 2 anos, 5 meses, 10 dias)<br>
+            ou <code>-1/6</code> (subtrair 1/6 da pena atual)<br>
+            • 1 ano = 360 dias | 1 mês = 30 dias
+        </div>
+
+        <div class="pena-display">
+            <h2>Pena Atual</h2>
+            <div class="pena-valor" id="penaValor">0D</div>
+            <div class="pena-dias" id="penaDias">(0 dias)</div>
+        </div>
+
+        <div class="mensagem" id="mensagem"></div>
+
+        <div class="input-group">
+            <input type="text" id="inputPena" placeholder="Ex: +2A 5M 10D ou -1/6" autocomplete="off">
+            <button onclick="processar()">Calcular</button>
+        </div>
+
+        <div class="comandos">
+            <button class="cmd-btn" onclick="toggleHistorico()">📋 Histórico</button>
+            <button class="cmd-btn" onclick="toggleAjuda()">❓ Ajuda</button>
+            <button class="cmd-btn" onclick="reset()">🔄 Reset</button>
+        </div>
+
+        <div class="ajuda" id="ajuda">
+            <h3>Comandos Disponíveis</h3>
+            <ul>
+                <li><code>+valor</code> → Adicionar pena (ex: +1/6, +2A 5M)</li>
+                <li><code>-valor</code> → Subtrair pena (ex: -1/3, -5M)</li>
+                <li><code>+1/6</code> → Adiciona 1/6 da pena atual</li>
+                <li><code>+1/3A</code> → Adiciona 1/3 de ano (4 meses)</li>
+                <li>Formato: A = Anos, M = Meses, D = Dias</li>
+            </ul>
+        </div>
+
+        <div class="historico" id="historico">
+            <h3>Histórico de Cálculos</h3>
+            <div id="historicoLista"></div>
+        </div>
+    </div>
+
+    <script>
+        let penaTotal = 0;
+        let historico = [];
+
+        function converterFracaoParaDias(fracaoStr, baseDias) {
+            const partes = fracaoStr.split('/');
+            const num = parseInt(partes[0]);
+            const den = parseInt(partes[1]);
+            return baseDias * num / den;
+        }
+
+        function interpretarEntrada(entrada, penaAtual) {
+            entrada = entrada.trim().toUpperCase();
+            
+            let sinal = 1;
+            if (entrada.startsWith('+')) {
+                sinal = 1;
+                entrada = entrada.substring(1).trim();
+            } else if (entrada.startsWith('-')) {
+                sinal = -1;
+                entrada = entrada.substring(1).trim();
+            }
+            
+            let totalDias = 0;
+            
+            if (entrada.includes('/') && !entrada.includes('A') && !entrada.includes('M') && !entrada.includes('D')) {
+                totalDias = converterFracaoParaDias(entrada, penaAtual);
+                return totalDias * sinal;
+            }
+            
+            entrada = entrada.replace(/\s/g, '');
+            
+            if (entrada.includes('A')) {
+                const partes = entrada.split('A');
+                const valor = partes[0];
+                if (valor.includes('/')) {
+                    let frac = valor;
+                    for (let i = valor.length - 1; i >= 0; i--) {
+                        if (!valor[i].match(/[0-9\/]/)) {
+                            frac = valor.substring(i + 1);
+                            break;
+                        }
+                    }
+                    totalDias += converterFracaoParaDias(frac, 360);
+                } else {
+                    let numStr = '';
+                    for (let i = valor.length - 1; i >= 0; i--) {
+                        if (valor[i].match(/[0-9.]/)) {
+                            numStr = valor[i] + numStr;
+                        } else {
+                            break;
+                        }
+                    }
+                    if (numStr) totalDias += parseFloat(numStr) * 360;
+                }
+                entrada = partes[1] || '';
+            }
+            
+            if (entrada.includes('M')) {
+                const partes = entrada.split('M');
+                const valor = partes[0];
+                if (valor.includes('/')) {
+                    let frac = valor;
+                    for (let i = valor.length - 1; i >= 0; i--) {
+                        if (!valor[i].match(/[0-9\/]/)) {
+                            frac = valor.substring(i + 1);
+                            break;
+                        }
+                    }
+                    totalDias += converterFracaoParaDias(frac, 30);
+                } else {
+                    let numStr = '';
+                    for (let i = valor.length - 1; i >= 0; i--) {
+                        if (valor[i].match(/[0-9.]/)) {
+                            numStr = valor[i] + numStr;
+                        } else {
+                            break;
+                        }
+                    }
+                    if (numStr) totalDias += parseFloat(numStr) * 30;
+                }
+                entrada = partes[1] || '';
+            }
+            
+            if (entrada.includes('D')) {
+                const partes = entrada.split('D');
+                const valor = partes[0];
+                let numStr = '';
+                for (let i = valor.length - 1; i >= 0; i--) {
+                    if (valor[i].match(/[0-9.]/)) {
+                        numStr = valor[i] + numStr;
+                    } else {
+                        break;
+                    }
+                }
+                if (numStr) totalDias += parseFloat(numStr);
+            }
+            
+            return totalDias * sinal;
+        }
+
+        function formatarPena(diasTotais) {
+            if (diasTotais < 0) {
+                return '-' + formatarPena(Math.abs(diasTotais));
+            }
+            
+            const anos = Math.floor(diasTotais / 360);
+            const resto = diasTotais % 360;
+            const meses = Math.floor(resto / 30);
+            const dias = Math.floor(resto % 30);
+            
+            const resultado = [];
+            if (anos > 0) resultado.push(`${anos}A`);
+            if (meses > 0) resultado.push(`${meses}M`);
+            if (dias > 0) resultado.push(`${dias}D`);
+            
+            return resultado.length > 0 ? resultado.join(' ') : '0D';
+        }
+
+        function mostrarMensagem(texto, tipo) {
+            const mensagem = document.getElementById('mensagem');
+            mensagem.textContent = texto;
+            mensagem.className = `mensagem ${tipo} show`;
+            setTimeout(() => {
+                mensagem.classList.remove('show');
+            }, 3000);
+        }
+
+        function atualizarDisplay() {
+            document.getElementById('penaValor').textContent = formatarPena(penaTotal);
+            document.getElementById('penaDias').textContent = `(${penaTotal.toFixed(2)} dias)`;
+        }
+
+        function atualizarHistorico() {
+            const lista = document.getElementById('historicoLista');
+            lista.innerHTML = '';
+            
+            historico.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'historico-item';
+                const ajusteClass = item.ajuste >= 0 ? 'ajuste' : 'ajuste negativo';
+                const sinal = item.ajuste >= 0 ? '+' : '';
+                div.innerHTML = `
+                    ${index + 1}. <span class="entrada">${item.entrada}</span> → 
+                    <span class="${ajusteClass}">${sinal}${formatarPena(Math.abs(item.ajuste))}</span> = 
+                    ${formatarPena(item.total)}
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function processar() {
+            const input = document.getElementById('inputPena');
+            let entrada = input.value.trim();
+            
+            if (!entrada) {
+                mostrarMensagem('Digite um valor', 'erro');
+                return;
+            }
+            
+            try {
+                if (!entrada.startsWith('+') && !entrada.startsWith('-')) {
+                    entrada = '+' + entrada;
+                }
+                
+                const ajuste = interpretarEntrada(entrada, penaTotal);
+                penaTotal += ajuste;
+                
+                historico.push({
+                    entrada: entrada,
+                    ajuste: ajuste,
+                    total: penaTotal
+                });
+                
+                atualizarDisplay();
+                atualizarHistorico();
+                
+                const tipoAjuste = ajuste >= 0 ? 'adicionado' : 'subtraído';
+                mostrarMensagem(`${formatarPena(Math.abs(ajuste))} ${tipoAjuste}`, 'sucesso');
+                
+                input.value = '';
+                input.focus();
+            } catch (e) {
+                mostrarMensagem('Entrada inválida: ' + e.message, 'erro');
+            }
+        }
+
+        function toggleHistorico() {
+            const hist = document.getElementById('historico');
+            hist.classList.toggle('show');
+            document.getElementById('ajuda').classList.remove('show');
+        }
+
+        function toggleAjuda() {
+            const ajuda = document.getElementById('ajuda');
+            ajuda.classList.toggle('show');
+            document.getElementById('historico').classList.remove('show');
+        }
+
+        function reset() {
+            if (confirm('Deseja realmente reiniciar os cálculos?')) {
+                penaTotal = 0;
+                historico = [];
+                atualizarDisplay();
+                atualizarHistorico();
+                document.getElementById('inputPena').value = '';
+                document.getElementById('historico').classList.remove('show');
+                mostrarMensagem('Cálculos reiniciados', 'sucesso');
+            }
+        }
+
+        document.getElementById('inputPena').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processar();
+            }
+        });
+    </script>
+</body>
+</html>
+
